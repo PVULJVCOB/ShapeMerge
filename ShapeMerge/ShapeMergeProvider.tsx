@@ -156,11 +156,10 @@ export const ShapeMergeProvider: React.FC<{ children: React.ReactNode; initialSe
       canvas.style.width = '100%';
       canvas.style.height = '100%';
       
-      // Textures (Downscale blur buffers for performance)
-      const blurScale = 1; // Downscale here
+      // Resize textures (Full resolution)
       [blurPass1Tex, blurPass2Tex].forEach(tex => {
         gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, canvas.width * blurScale, canvas.height * blurScale, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, canvas.width, canvas.height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
       });
     };
     window.addEventListener('resize', resize);
@@ -186,35 +185,32 @@ export const ShapeMergeProvider: React.FC<{ children: React.ReactNode; initialSe
       const { bg, blurPass1, blurPass2 } = texturesRef.current;
       const { pass1, pass2 } = framebuffersRef.current;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const blurScale = 1; // Downsize here
-      const blurWidth = canvas.width * blurScale;
-      const blurHeight = canvas.height * blurScale;
 
       // --- PASS 1: Horizontal Blur ---
       gl.bindFramebuffer(gl.FRAMEBUFFER, pass1);
       gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, blurPass1, 0);
-      gl.viewport(0, 0, blurWidth, blurHeight); // Viewport matches downscaled texture
+      gl.viewport(0, 0, canvas.width, canvas.height);
       gl.useProgram(blur);
       
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, bg);
       gl.uniform1i(gl.getUniformLocation(blur, 'u_texture'), 0);
-      gl.uniform2f(gl.getUniformLocation(blur, 'u_resolution'), blurWidth, blurHeight);
+      gl.uniform2f(gl.getUniformLocation(blur, 'u_resolution'), canvas.width, canvas.height);
       gl.uniform2f(gl.getUniformLocation(blur, 'u_direction'), 1.0, 0.0); // Horizontal
-      gl.uniform1i(gl.getUniformLocation(blur, 'u_radius'), Math.max(1, Math.floor(settings.blurRadius * blurScale))); // Scale radius too
+      gl.uniform1i(gl.getUniformLocation(blur, 'u_radius'), Math.max(1, Math.floor(settings.blurRadius)));
       
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
       // --- PASS 2: Vertical Blur ---
       gl.bindFramebuffer(gl.FRAMEBUFFER, pass2);
       gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, blurPass2, 0);
-      gl.viewport(0, 0, blurWidth, blurHeight);
+      gl.viewport(0, 0, canvas.width, canvas.height);
       gl.useProgram(blur);
       
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, blurPass1); // Input is result of Pass 1
       gl.uniform2f(gl.getUniformLocation(blur, 'u_direction'), 0.0, 1.0); // Vertical
-      gl.uniform2f(gl.getUniformLocation(blur, 'u_resolution'), blurWidth, blurHeight);
+      gl.uniform2f(gl.getUniformLocation(blur, 'u_resolution'), canvas.width, canvas.height);
       
       gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
 
