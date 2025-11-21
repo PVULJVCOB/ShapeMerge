@@ -156,8 +156,8 @@ export const ShapeMergeProvider: React.FC<{ children: React.ReactNode; initialSe
       canvas.style.width = '100%';
       canvas.style.height = '100%';
       
-      // Resize textures (Downscale blur buffers for performance)
-      const blurScale = 0.5;
+      // Textures (Downscale blur buffers for performance)
+      const blurScale = 1; // Downscale here
       [blurPass1Tex, blurPass2Tex].forEach(tex => {
         gl.bindTexture(gl.TEXTURE_2D, tex);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, canvas.width * blurScale, canvas.height * blurScale, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
@@ -186,7 +186,7 @@ export const ShapeMergeProvider: React.FC<{ children: React.ReactNode; initialSe
       const { bg, blurPass1, blurPass2 } = texturesRef.current;
       const { pass1, pass2 } = framebuffersRef.current;
       const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const blurScale = 0.5;
+      const blurScale = 1; // Downsize here
       const blurWidth = canvas.width * blurScale;
       const blurHeight = canvas.height * blurScale;
 
