@@ -203,6 +203,16 @@ vec3 adjustSaturation(vec3 color, float saturation) {
   return mix(gray, color, saturation);
 }
 
+// Dithering Helper
+float random(vec2 st) {
+    return fract(sin(dot(st.xy, vec2(12.9898,78.233))) * 43758.5453123);
+}
+
+vec3 dither(vec3 color, vec2 uv) {
+    float noise = random(uv) - 0.5;
+    return color + noise / 255.0;
+}
+
 void main() {
   vec2 p = gl_FragCoord.xy;
   // Flip Y for mouse/element coords matching
@@ -343,6 +353,9 @@ void main() {
     // Simple smooth mix at the edge
     outColor = mix(bgCol, outColor, alpha);
   }
+  
+  // Apply Dithering to prevent banding
+  outColor.rgb = dither(outColor.rgb, gl_FragCoord.xy);
   
   fragColor = outColor;
 }
